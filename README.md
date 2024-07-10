@@ -3,8 +3,8 @@
 ## A tool for Deauthentication Attacks, Rogue and Fake Wireless Access Points Detection Through Fingerprinting with Telegram Notifications
 
 Inspired by the tool snappy by spiderlabs at: https://github.com/SpiderLabs/snap.py for the Detection of Rogue and Fake Wireless APs.
-Author: firec0de
 
+Author: firec0de
 
 ### Define the wait time between notifications, API Token and Channel ID before sending the Telegram notification.
 ```
