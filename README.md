@@ -14,7 +14,7 @@ chat_id = "XXXXXXXXXX"
 ```
 
 ### Set interface name Ex: "wlan0".
-### Tool sets the interface on Monitor by default otherwise remove Monitor:True from thread arguments and set it on monitor mode yourself.
+### Tool sets the interface on Monitor by default otherwise remove Monitor:True from thread arguments and set it on monitor mode yourself before running.
 ```
 thread1 = threading.Thread(target=sniff,
                                kwargs={"iface": "wlan0", "monitor": True,"prn": parse, "filter": "wlan type mgt subtype beacon"})
