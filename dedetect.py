@@ -8,7 +8,9 @@ from scapy.layers.dot11 import *
 from datetime import datetime, timezone, timedelta
 from scapy.sendrecv import sniff
 
-# install required libraries by running: pip install -r requirements.txt
+
+# Author: firec0de
+# Install required libraries by running: pip install -r requirements.txt
 # Usage: sudo python dedetect.py <interface> <chat_id> <token>
 
 host = socket.gethostname() # hostname of the machine
@@ -45,7 +47,7 @@ except Exception as e:
     sys.exit(1)
 
 # Define the wait time before sending the Telegram notification.
-wait_time = 1  # in seconds
+wait_time = 2  # in seconds
 def time_now():
     return (datetime.now(timezone.utc) + timedelta(hours=2)).strftime('%H:%M:%S on %d/%m/%Y')
 def notify(message):  # send a notification to Telegram
@@ -56,6 +58,7 @@ def notify(message):  # send a notification to Telegram
             print("- Notified")
     except Exception as e:
         print(f"- Failed to notify: {e}")
+    time.sleep(wait_time)  # wait before sending the next notification
 def parse(frame):
     if frame.haslayer(Dot11) and frame.type == 0 and frame.subtype == 8:
         try:
@@ -89,16 +92,12 @@ def parse(frame):
 
             all = frame.addr3 + str(frame.info) + str(channel) + str(country) + str(vendor) + str(frame.rates) + str(
                 erates) + str(power) + str(cap) + str(htmax) + str(vendor)
-
-            details =("BSSID:", frame.addr3,"\nSSID:", (frame.info).decode('utf-8'),"\nChannel:", channel,"\nCountry:", country,
-                      "\nSupported Rates:", frame.rates, "\nExtended Rates:", erates,"\nMax Transmit Power:", power,
-                      "\nCapabilities:", cap, "\nMax_A_MSDU:", htmax, "\nVendor:", vendor, "\nSHA256:", hashlib.sha256(all.encode('utf-8')).hexdigest())
+            details =(f"BSSID:{frame.addr3}\nSSID:{(frame.info).decode('utf-8')}\nChannel:{channel}\nCountry:{country}\nSupported Rates:{frame.rates}\nExtended Rates:{erates}\nMax Transmit Power:{power}\nCapabilities:{cap}\nMax_A_MSDU:{htmax}\nVendor:{vendor}\nSHA256:{hashlib.sha256(all.encode('utf-8')).hexdigest()}")
 
             airbasesig = str(country) + str(frame.rates) + str(erates) + str(power) + str(cap) + str(htmax) + str(vendor)
             if hashlib.sha256(airbasesig.encode('utf-8')).hexdigest() == "4c847490293ea0bf0cf2fe7ddb02703368aaf8e97ffb16455f0365a7497e2de2":
-                print(details)
-                print("******** AIRBASE-NG DETECTED AT THIS ACCESS POINT ********\n")
-                notify(f"!!! AIRBASE-NG DETECTED AT THIS ACCESS POINT: {details} on {time_now()} at {host_ip}")# send the notification
+                print(f"****AIRBASE-NG DETECTED AT THIS ACCESS POINT ****\n{details}\n")
+                notify(f"**** AIRBASE-NG DETECTED AT THIS ACCESS POINT ****\n{details}\n----------------------------------------------------------------------------------\nOn {time_now()} at {host_ip}")# send the notification
 
         except Exception as e:
             notify(f"Error parsing frame: {e}")
@@ -108,9 +107,8 @@ def parse_packet(packet):  # parse the packet to get the AP MAC address and send
         try:
             ap_mac = packet.addr2 # get the AP MAC address from the packet
             if packet.type == 0 and (packet.subtype == 0x0a or packet.subtype == 0x0c): # check if the packet is a Deauth/Disassoc
-                print(f"!!! Deauth/Disassoc DETECTED: {ap_mac} on {time_now()} at {host_ip} !!!\n-------------------------------------------------------------")  # print the detected Deauth/Disassoc message
-                notify(f"!!! Deauth/Disassoc DETECTED: {ap_mac} on {time_now()} at {host_ip}") # send the notification
-                time.sleep(wait_time)  # wait before sending the next notification
+                print(f"**** Deauth/Disassoc DETECTED **** \n{ap_mac} on {time_now()} at {host_ip}.\n----------------------------------------------------------------------------------")  # print the detected Deauth/Disassoc message
+                notify(f"**** Deauth/Disassoc DETECTED ****\n{ap_mac} on {time_now()} at {host_ip}.") # send the notification
         except Exception as e:
             notify(f"Error parsing packet: {e}")
             print(f"Error parsing packet: {e}")
@@ -129,7 +127,7 @@ def start_sniffers():
 # Start the sniffers and monitor the network for Deauth/Disassoc and Fake/Rogue APs
 if __name__ == "__main__":
     print("DeDetect a Deauth/Disassoc + Fake/Rogue AP Detection with Telegram Notifications")
-    print(f"Inspired by the tool snappy by spiderlabs at: https://github.com/SpiderLabs/snap.py\nAuthor: firec0de")
+    print(f"Inspired by the tool snappy by spiderlabs at: https://github.com/SpiderLabs/snap.py\nAuthor: firec0de\n\n")
     notify(f"Started Monitoring Connected Network on {time_now()} at {host_ip} user {host}.")
-    print(f"Started Monitoring Connected Network on {time_now()} at {host_ip} user {host}.")
+    print(f"Started Monitoring Connected Network on {time_now()} at {host_ip} user {host}.\n----------------------------------------------------------------------------------")
     start_sniffers()
