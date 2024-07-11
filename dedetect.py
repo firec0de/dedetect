@@ -1,17 +1,53 @@
-from scapy.layers.dot11 import *
 import requests
-from time import time, strftime, gmtime
-from scapy.sendrecv import sniff
 import hashlib
 import threading
 import time
+import sys
+import socket
+from scapy.layers.dot11 import *
+from datetime import datetime, timezone, timedelta
+from scapy.sendrecv import sniff
 
-# Define the wait time, API Token and Channel ID before sending the Telegram notification.
+# install required libraries by running: pip install -r requirements.txt
+# Usage: sudo python dedetect.py <interface> <chat_id> <token>
 
-wait_time =1 # in seconds
-TOKEN = "******************************" # Telegram Bot API Token
-chat_id = "************" # Telegram channel ID
+host = socket.gethostname() # hostname of the machine
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try:
+    # finds the local interface
+    s.connect(("8.8.8.8", 80))
+    host_ip = s.getsockname()[0] # local IP address
+finally:
+    s.close()
 
+# Capture command-line arguments
+if len(sys.argv) != 4:
+    print("Usage: sudo python dedetect.py <interface> <chat_id> <token>")
+    sys.exit(1)
+
+try:
+    interface = str(sys.argv[1])  # Wireless interface name ex wlan0, eth0, etc.
+    chat_id = str(sys.argv[2])    # Telegram channel ID
+    TOKEN = str(sys.argv[3])      # Telegram Bot API Token
+
+    if not interface:
+        raise ValueError("Interface cannot be empty.")
+    if not chat_id:
+        raise ValueError("Chat ID cannot be empty.")
+    if not TOKEN:
+        raise ValueError("TOKEN cannot be empty.")
+
+except ValueError as ve:
+    print(f"ValueError: {ve}")
+    sys.exit(1)
+except Exception as e:
+    print(f"Error: {e}")
+    sys.exit(1)
+
+# Define the wait time before sending the Telegram notification.
+wait_time = 1  # in seconds
+def time_now():
+    return (datetime.now(timezone.utc) + timedelta(hours=2)).strftime('%H:%M:%S on %d/%m/%Y')
 def notify(message):  # send a notification to Telegram
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={message}" # Telegram API URL
     try:
@@ -20,8 +56,6 @@ def notify(message):  # send a notification to Telegram
             print("- Notified")
     except Exception as e:
         print(f"- Failed to notify: {e}")
-
-
 def parse(frame):
     if frame.haslayer(Dot11) and frame.type == 0 and frame.subtype == 8:
         try:
@@ -64,20 +98,18 @@ def parse(frame):
             if hashlib.sha256(airbasesig.encode('utf-8')).hexdigest() == "4c847490293ea0bf0cf2fe7ddb02703368aaf8e97ffb16455f0365a7497e2de2":
                 print(details)
                 print("******** AIRBASE-NG DETECTED AT THIS ACCESS POINT ********\n")
-                notify(f"!!! AIRBASE-NG DETECTED AT THIS ACCESS POINT: {details}at {strftime('%H:%M:%S on %d/%m/%Y', gmtime())}")# send the notification
+                notify(f"!!! AIRBASE-NG DETECTED AT THIS ACCESS POINT: {details} on {time_now()} at {host_ip}")# send the notification
 
         except Exception as e:
             notify(f"Error parsing frame: {e}")
             print(f"Error parsing frame: {e}")
-
 def parse_packet(packet):  # parse the packet to get the AP MAC address and send a notification if Detected Deauth
     if packet.haslayer(Dot11): # check if the packet contains a Dot11 layer
         try:
             ap_mac = packet.addr2 # get the AP MAC address from the packet
             if packet.type == 0 and (packet.subtype == 0x0a or packet.subtype == 0x0c): # check if the packet is a Deauth/Disassoc
-                time_now = strftime("%H:%M:%S on %d/%m/%Y", gmtime())
-                print(f"!!! Deauth/Disassoc DETECTED: {ap_mac} at {time_now} !!!\n-------------------------------------------------------------")  # print the detected Deauth/Disassoc message
-                notify(f"!!! Deauth/Disassoc DETECTED: {ap_mac} at {time_now}") # send the notification
+                print(f"!!! Deauth/Disassoc DETECTED: {ap_mac} on {time_now()} at {host_ip} !!!\n-------------------------------------------------------------")  # print the detected Deauth/Disassoc message
+                notify(f"!!! Deauth/Disassoc DETECTED: {ap_mac} on {time_now()} at {host_ip}") # send the notification
                 time.sleep(wait_time)  # wait before sending the next notification
         except Exception as e:
             notify(f"Error parsing packet: {e}")
@@ -85,8 +117,8 @@ def parse_packet(packet):  # parse the packet to get the AP MAC address and send
 
 def start_sniffers():
     thread1 = threading.Thread(target=sniff,
-                               kwargs={"iface": "wlan0", "monitor": True,"prn": parse, "filter": "wlan type mgt subtype beacon"})
-    thread2 = threading.Thread(target=sniff, kwargs={"iface": "wlan0", "monitor": True, "prn": parse_packet,
+                               kwargs={"iface": interface,"prn": parse, "filter": "wlan type mgt subtype beacon"})
+    thread2 = threading.Thread(target=sniff, kwargs={"iface": interface, "prn": parse_packet,
                                                      "filter": "wlan type mgt subtype deauth or wlan type mgt subtype disassoc"})
 
     thread1.start()
@@ -94,11 +126,10 @@ def start_sniffers():
     thread1.join()
     thread2.join()
 
+# Start the sniffers and monitor the network for Deauth/Disassoc and Fake/Rogue APs
 if __name__ == "__main__":
     print("DeDetect a Deauth/Disassoc + Fake/Rogue AP Detection with Telegram Notifications")
-    print("Inspired by the tool dedetect.py by spiderlabs at: https://github.com/SpiderLabs/snap.py")
-    notify(f"Started Monitoring Connected Network at {strftime('%H:%M:%S on %d/%m/%Y', gmtime())}")
-    print(f"Started Monitoring Connected Network at {strftime('%H:%M:%S on %d/%m/%Y', gmtime())}")
+    print(f"Inspired by the tool snappy by spiderlabs at: https://github.com/SpiderLabs/snap.py\nAuthor: firec0de")
+    notify(f"Started Monitoring Connected Network on {time_now()} at {host_ip} user {host}.")
+    print(f"Started Monitoring Connected Network on {time_now()} at {host_ip} user {host}.")
     start_sniffers()
-
-# NOTE: Replace "wlan0" on thread1 & thread2 with your wireless interface name.
