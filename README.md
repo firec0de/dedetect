@@ -13,17 +13,17 @@ pip install -r requirements.txt
 ```
 Check and turn on Monitor Mode for your interface:
 ```
-sudo iwconfig # to see interface name and current mode
-sudo ip link set INTERFACE_NAME down # turn interface off
-sudo iw INTERFACE_NAME set monitor none # switch mode to monitor
-sudo ip link set INTERFACE_NAME up # turn interface on
+sudo iwconfig
+sudo ip link set wlan0 down
+sudo iw wlan0 set monitor none
+sudo ip link set wlan0 up
 ```
 ## Run: 
 ```
 sudo python dedetect.py <interface> <chat_id> <token>
 ```
 
-### Dont forget to Define the wait time between notifications for Telegram.
+#### Dont forget to Define the wait time between notifications for Telegram.
 ```
 wait_time = 1  # in seconds
 ```
