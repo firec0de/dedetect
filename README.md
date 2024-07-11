@@ -6,16 +6,27 @@ Inspired by the tool snappy by spiderlabs at: https://github.com/SpiderLabs/snap
 
 Author: firec0de
 
-### Define the wait time between notifications, API Token and Channel ID before sending the Telegram notification.
+## Prerequisites
+Install required libraries by running: 
 ```
-wait_time = X # in seconds
-TOKEN = "XXXXXXXXXXXXXXXXXX"
-chat_id = "XXXXXXXXXX"
+pip install -r requirements.txt
+```
+Check and turn on Monitor Mode for your interface:
+```
+sudo iwconfig # to see interface name and current mode
+sudo ip link set INTERFACE_NAME down # turn interface off
+sudo iw INTERFACE_NAME set monitor none # switch mode to monitor
+sudo ip link set INTERFACE_NAME up # turn interface on
+```
+## Run: 
+```
+sudo python dedetect.py <interface> <chat_id> <token>
 ```
 
-### Set interface name Ex: "wlan0".
-### Tool sets the interface on Monitor by default otherwise remove Monitor:True from thread arguments and set it on monitor mode yourself before running.
+### Dont forget to Define the wait time between notifications for Telegram.
 ```
-thread1 = threading.Thread(target=sniff,
-                               kwargs={"iface": "wlan0", "monitor": True,"prn": parse, "filter": "wlan type mgt subtype beacon"})
+wait_time = 1  # in seconds
 ```
+
+#### Telegram Bot Tutorial
+https://core.telegram.org/bots/tutorial
