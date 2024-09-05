@@ -62,7 +62,6 @@ wait_time = 2  # in seconds
 def time_now():
     return (datetime.now(timezone.utc) + timedelta(hours=2)).strftime('%H:%M:%S on %d/%m/%Y')
 
-
 def notify(message):  # send a notification to Telegram
     if enable_notifications:
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={message}"  # Telegram API URL
