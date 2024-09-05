@@ -19,11 +19,16 @@ sudo iw wlan0 set monitor none
 sudo ip link set wlan0 up
 ```
 ## Run: 
+### Usage without notification: 
+```
+sudo python dedetect.py <interface>
+```
+### Usage with telegram notification:
 ```
 sudo python dedetect.py <interface> <chat_id> <token>
 ```
 
-#### Dont forget to Define the wait time between notifications for Telegram.
+#### Wait time between notifications for Telegram:
 ```
 wait_time = 1  # in seconds
 ```
