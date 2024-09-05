@@ -33,5 +33,5 @@ sudo python dedetect.py <interface> <chat_id> <token>
 wait_time = 1  # in seconds
 ```
 
-#### Telegram Bot Tutorial
+#### Telegram Bot Documentation
 https://core.telegram.org/bots/tutorial
