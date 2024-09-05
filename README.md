@@ -34,4 +34,6 @@ wait_time = 1  # in seconds
 ```
 
 #### Telegram Bot Documentation
+https://core.telegram.org/bots/#how-do-i-create-a-bot
 https://core.telegram.org/bots/tutorial
+
