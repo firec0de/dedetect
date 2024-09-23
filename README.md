@@ -37,7 +37,6 @@ wait_time = 1  # in seconds
 https://core.telegram.org/bots/#how-do-i-create-a-bot</br>
 https://core.telegram.org/bots/tutorial
 
-####
-Part of my Master Thesis in Cybersecurity
+#### Part of my Master's Thesis in Cybersecurity
 http://dx.doi.org/10.13140/RG.2.2.23113.15208
 
